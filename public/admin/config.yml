@@ -1,6 +1,9 @@
 backend:
-  name: git-gateway
+  name: github
+  repo: fologram/blog
   branch: master
+  base_url: https://us-central1-fg-blog-1f88a.cloudfunctions.net # The base URL for your Firebase Function
+  auth_endpoint: /oauth/auth # The path to the OAuth endpoint of the function
 media_folder: public/images
 public_folder: /images
 publish_mode: editorial_workflow
