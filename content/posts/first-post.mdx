@@ -1,0 +1,53 @@
+---
+slug: first-post
+title: Building a blog with Netlify CMS, NextJS and Firebase Hosting
+date: 2021-11-26
+author: cam
+---
+Obligatory first post describing how this blog is made.
+
+Static sites are all the rage. They're the fastest way to deliver content to the user, and they can be entirely serverless. There are [many generators](https://jamstack.org/generators/) and [many content management systems (CMS)](https://jamstack.org/headless-cms/) that can be used in conjunction.
+
+This blog is made by combining Netlify CMS, Github, NextJS and Firebase Hosting to achieve:
+
+* Zero cost (unless readership becomes extremely large)
+* No servers (with one exception - a 'serverless' function - to authorize with GitHub)
+* No vendor lock-in
+* Version control
+* Full customizability of the front end
+* A React (typescript) project base
+* Automated preview and production builds.
+
+# Structure
+
+The two services we use are:
+
+**Github** hosts the content and project. **Github Actions** builds and deploys the project to firebase hosting.
+
+**Firebase hosting** offers the mostly-free hosting and automated deployment. We also use a **firebase function** to authorize with GitHub (only required by contributors)
+
+The project uses:
+
+**Netlify-CMS** as a backend (pre-generation) structure and admin panel. The admin route modifies content stored on github, which in turn creates a pull request that triggers an action to deploy a new site or preview site.
+
+**NextJS** is used for the primary project due to it's React base and ability to generate static sites.
+
+# Assembly
+
+To pull it all together, we roughly took the following steps:
+
+1. Start with a NextJS/Netlify template. I used [this one](https://github.com/wutali/nextjs-netlify-blog-template).
+2. Install `firebase-tools`, create a new project and initialize `hosting` and `functions`. Create the hosting merge and pull request automations with github as you go.
+3. To enable github auth, copy [this firebase function](https://github.com/Herohtar/netlify-cms-oauth-firebase) (and dependencies to `package.json`). Follow the instructions in `readme.md`. We also converted it to typescript for consistency with the rest of the project.
+4. Deploy the function with `firebase deploy --only functions`
+5. Test deployment with `npm run export && firebase deploy --only hosting`
+6. Automate deployment by committing to the master branch.
+
+## Gotchas
+The main purpose of this post isn't to go into details about the assembly process as this is reasonably straightforward from the above instructions, but instead to highlight a few issues that may arise and the solutions.
+
+### 1. Changing data breaks the builds
+The template is minimal. This is good. But it also means that it doesn't cater for scenarios like a deleted author with active posts (which you will naturally do as one of the first steps with your deployed site!). This also applies to tags. You'll notice that your builds start to fail if you do this, though once the rest of the posts are deleted they'll succeed again.
+
+### 2. NextJS routing doesn't work when refreshing the page
+You get a 404 when going to `my.web.app/posts/my-post` and then refreshing. Firebase just needs `"cleanUrls":true` in the `"hosting"` section of `firebase.json`
